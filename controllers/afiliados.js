@@ -232,14 +232,14 @@ let iniciarSesion = async (req, res, next) => {
         if(!claveValida) {
             return res.status(400).json({
                 error : {
-                    msg : "Usuario o clave incorrectos"
+                    msg : "Usuario o contraseña incorrectos"
                 }
             });
         }
         //Genera token
         const token = await generarJWT(afiliado.dataValues.email);
         res.json({
-            'usuario validado' : afiliado,
+            afiliado,
             token
         });
     } catch (error) {
