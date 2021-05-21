@@ -66,9 +66,8 @@ let crearCuenta = async (req, res, next) => {
             }
         });
     }
-    //Verificar que la clabe corresponde al formato
+    //Verificar que la CLABE corresponde al formato
     let clabe = Number(body.clabe);
-    console.log(body.clabe.length);
     if(body.clabe.length != 18 || Object.is(clabe, NaN)){
         return res.status(400).json({
             error : {
@@ -86,15 +85,27 @@ let crearCuenta = async (req, res, next) => {
                 }
             });
         }
-        //Buscar cuenta de usuario
-
+        //Busca si el usuario tiene una cuenta
+        const cuenta = await Cuenta.findOne({
+            where: {
+                id_cuenta : body.id_cuenta
+            }
+        });
+        //Verifica que no exista una cuenta para este usuario en la BD
+        if(cuenta){ 
+            return res.status(400).json({
+                error: {
+                    msg : 'Este usuario ya tiene una cuenta registrada'
+                }
+            });
+        }
         //Busca el campo de clabe en BD
         const existeClabe = await Cuenta.findOne({
             where : {
                 clabe : body.clabe
             }
         });
-        //Verifica que no exista una clabe en la BD
+        //Verifica que no exista esta clabe en la BD
         if(existeClabe){ 
             return res.status(400).json({
                 error: {
@@ -103,11 +114,12 @@ let crearCuenta = async (req, res, next) => {
                 }
             });
         }
+        //Crea la cuenta
+        const cuentaNueva = new Cuenta(body);
         //Guarda la cuenta
-        const cuenta = new Cuenta(body);
-        await cuenta.save();
-        //Se envían los datos de la cuenta
-        res.status(201).send({cuenta});
+        await cuentaNueva.save();
+        //Se envían los datos de la cuenta nueva
+        res.status(201).send({cuenta : cuentaNueva});
     } catch (error) {
         console.log(error);
         res.status(500).json({
