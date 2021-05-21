@@ -1,5 +1,3 @@
-const bcrypt = require('bcryptjs');
-const generarJWT = require('../helpers/generar-jwt');
 const Cuenta = require('../models/Cuenta');
 const Afiliado = require('../models/Afiliado');
 
