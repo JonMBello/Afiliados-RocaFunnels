@@ -182,7 +182,7 @@ let modificarCuenta = async (req, res, next) => {
         //Actualiza los datos
         await cuenta.update(body,{"raw":"true"});
         //Se envían los datos de la cuenta nueva
-        res.status(201).send({cuenta});
+        res.status(200).send({cuenta});
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -195,7 +195,54 @@ let modificarCuenta = async (req, res, next) => {
 
 //Función que elimina un usuario, se tiene que verificar
 let eliminarCuenta = async (req, res, next) => {
-   
+    let {id} = req.params;
+    //Verifica que el ID venga en la petición
+    if(!id){
+        return res.status(400).json({
+            error : {
+                msg : 'El ID del usuario es necesario'
+            }
+        });
+    }
+    try {
+        //Busca el usuario en BD
+        const usuario = await Afiliado.findByPk(id);
+        if(!usuario) {
+            return res.status(404).json({
+                error : {
+                    msg : 'Usuario no encontrado'
+                }
+            });
+        }
+        //Busca la cuenta del usuario
+        const cuenta = await Cuenta.findOne({
+            where: {
+                id_cuenta : id
+            }
+        });
+        //Verifica que el usuario tenga una cuenta registrada
+        if(!cuenta){ 
+            return res.status(404).json({
+                error: {
+                    msg : 'Este usuario no tiene una cuenta registrada'
+                }
+            });
+        }
+        //Opción de eliminar físicamente usuario
+        cuenta.destroy();
+        //Opción de eliminar lógicamente usuario - falta
+
+
+        //Se envían la respuesta
+        res.status(200).send(`Cuenta del usuario ${id} eliminada`);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            error : {
+                msg : 'Error del sistema, intente de nuevo más tarde o comuníquese con un asesor'
+            }
+        });
+    }
 }
 
 module.exports = {
