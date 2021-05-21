@@ -131,18 +131,18 @@ let crearCuenta = async (req, res, next) => {
 }
 
 let modificarCuenta = async (req, res, next) => {
+    let {id} = req.params;
     let {body} = req;
     //Verifica que los datos necesarios vengan en la petición
-    if(!body.clabe || !body.id_cuenta || !body.banco){
+    if(!body.clabe || !id || !body.banco){
         return res.status(400).json({
             error : {
                 msg : 'Los datos de la cuenta deben estar completos'
             }
         });
     }
-    //Verificar que la clabe corresponde al formato
+    //Verificar que la CLABE corresponde al formato
     let clabe = Number(body.clabe);
-    console.log(body.clabe.length);
     if(body.clabe.length != 18 || Object.is(clabe, NaN)){
         return res.status(400).json({
             error : {
@@ -152,7 +152,7 @@ let modificarCuenta = async (req, res, next) => {
     }
     try {
         //Busca el usuario en BD
-        const usuario = await Afiliado.findByPk(body.id_cuenta);
+        const usuario = await Afiliado.findByPk(id);
         if(!usuario) {
             return res.status(404).json({
                 error : {
@@ -166,19 +166,24 @@ let modificarCuenta = async (req, res, next) => {
                 clabe : body.clabe
             }
         });
-        //Verifica que no exista una clabe en la BD
+        //Verifica que no exista esta clabe en la BD
         if(existeClabe){ 
             return res.status(400).json({
                 error: {
                     msg : 'Ya existe un usuario con esta clabe',
-                    campo : body.telefono
+                    campo : body.clabe
                 }
             });
         }
-        //Guarda la cuenta
-        const cuenta = new Cuenta(body);
-        await cuenta.save();
-        //Se envían los datos de la cuenta
+        //Busca la cuenta del usuario
+        const cuenta = await Cuenta.findOne({
+            where: {
+                id_cuenta : id
+            }
+        });
+        //Actualiza los datos
+        await cuenta.update(body,{"raw":"true"});
+        //Se envían los datos de la cuenta nueva
         res.status(201).send({cuenta});
     } catch (error) {
         console.log(error);
@@ -199,4 +204,5 @@ module.exports = {
     obtenerCuentas,
     obtenerCuenta,
     crearCuenta,
+    modificarCuenta
 }
